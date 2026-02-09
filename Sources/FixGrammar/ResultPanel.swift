@@ -9,6 +9,9 @@ final class ResultPanel: NSObject, NSPopoverDelegate {
     private var deactivationObserver: Any?
     private let state: PopupState
 
+    // Cached position for reopening after loading.
+    private var cachedSelectionRect: NSRect = .zero
+
     // Temporary strong refs so AppKit animations can finish before dealloc.
     private var retainedPopover: NSPopover?
     private var retainedAnchor: NSWindow?
@@ -31,12 +34,37 @@ final class ResultPanel: NSObject, NSPopoverDelegate {
             self?.close()
         }
 
+        cachedSelectionRect = selectionRect
+        showPopover(at: selectionRect)
+    }
+
+    func updateResult(_ text: String) {
+        DispatchQueue.main.async {
+            self.state.isLoading = false
+            self.state.resultText = text
+            self.reopenWithContent()
+        }
+    }
+
+    func updateError(_ message: String) {
+        DispatchQueue.main.async {
+            self.state.isLoading = false
+            self.state.errorMessage = message
+            self.reopenWithContent()
+        }
+    }
+
+    private func reopenWithContent() {
+        dismissPopover()
+        showPopover(at: cachedSelectionRect)
+    }
+
+    private func showPopover(at selectionRect: NSRect) {
         let view = PopupView(state: state)
         let hosting = NSHostingController(rootView: view)
 
         let pop = NSPopover()
         pop.contentViewController = hosting
-        pop.contentSize = NSSize(width: 340, height: 160)
         pop.behavior = .applicationDefined
         pop.animates = false
         pop.appearance = NSAppearance(named: .darkAqua)
@@ -76,6 +104,30 @@ final class ResultPanel: NSObject, NSPopoverDelegate {
         )
 
         NSApp.activate(ignoringOtherApps: true)
+        installMonitors()
+    }
+
+    /// Close popover and anchor without removing event monitors.
+    private func dismissPopover() {
+        let pop = popover
+        let anchor = anchorWindow
+        popover = nil
+        anchorWindow = nil
+
+        retainedPopover = pop
+        retainedAnchor = anchor
+
+        pop?.close()
+        anchor?.orderOut(nil)
+
+        DispatchQueue.main.async { [weak self] in
+            self?.retainedPopover = nil
+            self?.retainedAnchor = nil
+        }
+    }
+
+    private func installMonitors() {
+        removeMonitors()
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
@@ -107,40 +159,9 @@ final class ResultPanel: NSObject, NSPopoverDelegate {
         }
     }
 
-    func updateResult(_ text: String) {
-        DispatchQueue.main.async {
-            self.state.isLoading = false
-            self.state.resultText = text
-        }
-    }
-
-    func updateError(_ message: String) {
-        DispatchQueue.main.async {
-            self.state.isLoading = false
-            self.state.errorMessage = message
-        }
-    }
-
     func close() {
         removeMonitors()
-
-        let pop = popover
-        let anchor = anchorWindow
-        popover = nil
-        anchorWindow = nil
-
-        // Keep strong refs so AppKit's internal _NSWindowTransformAnimation
-        // can finish deallocating before these objects disappear.
-        retainedPopover = pop
-        retainedAnchor = anchor
-
-        pop?.close()
-        anchor?.orderOut(nil)
-
-        DispatchQueue.main.async { [weak self] in
-            self?.retainedPopover = nil
-            self?.retainedAnchor = nil
-        }
+        dismissPopover()
     }
 
     private func removeMonitors() {
@@ -159,8 +180,9 @@ final class ResultPanel: NSObject, NSPopoverDelegate {
     }
 
     func popoverDidClose(_ notification: Notification) {
+        // Only clean up if this wasn't a reopen cycle.
+        guard popover == nil else { return }
         removeMonitors()
-        popover = nil
         if let anchor = anchorWindow {
             anchorWindow = nil
             retainedAnchor = anchor

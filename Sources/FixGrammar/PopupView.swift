@@ -1,7 +1,7 @@
 import SwiftUI
 
 private let popupWidth: CGFloat = 340
-private let popupHeight: CGFloat = 160
+private let maxContentHeight: CGFloat = 300
 
 struct PopupView: View {
     @ObservedObject var state: PopupState
@@ -13,32 +13,27 @@ struct PopupView: View {
                 .foregroundColor(.white)
                 .padding(.bottom, 10)
 
-            // Scrollable content area that fills available space
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    if state.isLoading {
-                        HStack(spacing: 8) {
-                            ProgressView()
-                                .controlSize(.small)
-                                .colorScheme(.dark)
-                            Text("Processing...")
-                                .font(.system(size: 13))
-                                .foregroundColor(.white.opacity(0.5))
-                        }
-                    } else if let error = state.errorMessage {
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundColor(.red.opacity(0.9))
-                    } else {
-                        Text(state.resultText)
-                            .font(.system(size: 13))
-                            .foregroundColor(.white.opacity(0.9))
-                            .textSelection(.enabled)
-                            .lineSpacing(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+            if state.isLoading {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .controlSize(.small)
+                        .colorScheme(.dark)
+                    Text("Processing...")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.5))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            } else if let error = state.errorMessage {
+                Text(error)
+                    .font(.system(size: 13))
+                    .foregroundColor(.red.opacity(0.9))
+            } else {
+                Text(state.resultText)
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.9))
+                    .textSelection(.enabled)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, maxHeight: maxContentHeight, alignment: .leading)
             }
 
             if !state.isLoading {
@@ -70,7 +65,7 @@ struct PopupView: View {
             }
         }
         .padding(14)
-        .frame(width: popupWidth, height: popupHeight)
+        .frame(width: popupWidth)
         .preferredColorScheme(.dark)
     }
 }
