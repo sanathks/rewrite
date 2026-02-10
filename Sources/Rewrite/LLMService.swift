@@ -1,6 +1,6 @@
 import Foundation
 
-enum LLMError: Error, LocalizedError {
+enum LLMError: Error, LocalizedError, Equatable {
     case invalidURL
     case connectionFailed(String)
     case requestFailed(Int)
@@ -25,10 +25,24 @@ enum LLMError: Error, LocalizedError {
 
 final class LLMService {
     static let shared = LLMService()
-    private init() {}
+
+    let session: URLSession
+    let settingsProvider: () -> (serverURL: String, modelName: String)
+
+    init(session: URLSession, settingsProvider: @escaping () -> (serverURL: String, modelName: String)) {
+        self.session = session
+        self.settingsProvider = settingsProvider
+    }
+
+    private convenience init() {
+        self.init(session: .shared, settingsProvider: {
+            let s = Settings.shared
+            return (s.serverURL, s.modelName)
+        })
+    }
 
     func generate(prompt: String, completion: @escaping (Result<String, LLMError>) -> Void) {
-        let settings = Settings.shared
+        let settings = settingsProvider()
         guard let url = URL(string: "\(settings.serverURL)/v1/chat/completions") else {
             completion(.failure(.invalidURL))
             return
@@ -55,7 +69,7 @@ final class LLMService {
             return
         }
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        let task = session.dataTask(with: request) { data, response, error in
             if let error = error {
                 completion(.failure(.connectionFailed(error.localizedDescription)))
                 return
@@ -87,7 +101,7 @@ final class LLMService {
     }
 
     func fetchModels(completion: @escaping ([String]) -> Void) {
-        let settings = Settings.shared
+        let settings = settingsProvider()
         guard let url = URL(string: "\(settings.serverURL)/v1/models") else {
             completion([])
             return
@@ -96,7 +110,7 @@ final class LLMService {
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
 
-        URLSession.shared.dataTask(with: request) { data, response, _ in
+        session.dataTask(with: request) { data, response, _ in
             guard let data = data,
                   let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200,

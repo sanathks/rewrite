@@ -27,34 +27,36 @@ struct RewriteMode: Codable, Identifiable, Equatable {
 final class Settings: ObservableObject {
     static let shared = Settings()
 
+    let defaults: UserDefaults
+
     @Published var serverURL: String {
-        didSet { UserDefaults.standard.set(serverURL, forKey: "ollamaURL") }
+        didSet { defaults.set(serverURL, forKey: "ollamaURL") }
     }
 
     @Published var modelName: String {
-        didSet { UserDefaults.standard.set(modelName, forKey: "modelName") }
+        didSet { defaults.set(modelName, forKey: "modelName") }
     }
 
     @Published var grammarShortcut: Shortcut {
         didSet {
-            UserDefaults.standard.set(grammarShortcut.keyCode, forKey: "grammarKeyCode")
-            UserDefaults.standard.set(grammarShortcut.modifiers, forKey: "grammarModifiers")
+            defaults.set(grammarShortcut.keyCode, forKey: "grammarKeyCode")
+            defaults.set(grammarShortcut.modifiers, forKey: "grammarModifiers")
         }
     }
 
     @Published var rewriteShortcut: Shortcut {
         didSet {
-            UserDefaults.standard.set(rewriteShortcut.keyCode, forKey: "rewriteKeyCode")
-            UserDefaults.standard.set(rewriteShortcut.modifiers, forKey: "rewriteModifiers")
+            defaults.set(rewriteShortcut.keyCode, forKey: "rewriteKeyCode")
+            defaults.set(rewriteShortcut.modifiers, forKey: "rewriteModifiers")
         }
     }
 
     @Published var defaultModeId: UUID? {
         didSet {
             if let id = defaultModeId {
-                UserDefaults.standard.set(id.uuidString, forKey: "defaultModeId")
+                defaults.set(id.uuidString, forKey: "defaultModeId")
             } else {
-                UserDefaults.standard.removeObject(forKey: "defaultModeId")
+                defaults.removeObject(forKey: "defaultModeId")
             }
         }
     }
@@ -62,7 +64,7 @@ final class Settings: ObservableObject {
     @Published var rewriteModes: [RewriteMode] {
         didSet {
             if let data = try? JSONEncoder().encode(rewriteModes) {
-                UserDefaults.standard.set(data, forKey: "rewriteModes")
+                defaults.set(data, forKey: "rewriteModes")
             }
         }
     }
@@ -90,8 +92,8 @@ final class Settings: ObservableObject {
         ),
     ]
 
-    private init() {
-        let defaults = UserDefaults.standard
+    init(defaults: UserDefaults) {
+        self.defaults = defaults
         self.serverURL = defaults.string(forKey: "ollamaURL") ?? "http://localhost:11434"
         self.modelName = defaults.string(forKey: "modelName") ?? "gemma3"
 
@@ -126,6 +128,10 @@ final class Settings: ObservableObject {
         } else {
             self.rewriteModes = Settings.defaultRewriteModes
         }
+    }
+
+    private convenience init() {
+        self.init(defaults: .standard)
     }
 }
 
