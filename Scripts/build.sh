@@ -32,4 +32,16 @@ cp "$PROJECT_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon
 cp "$PROJECT_DIR/Resources/icon.png" "$APP_BUNDLE/Contents/Resources/icon.png"
 echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 
-echo "Build complete: $APP_BUNDLE"
+echo "App bundle created: $APP_BUNDLE"
+
+# Create DMG
+DMG_PATH="$BUILD_DIR/$APP_NAME.dmg"
+DMG_TEMP="$BUILD_DIR/dmg_staging"
+rm -rf "$DMG_TEMP" "$DMG_PATH"
+mkdir -p "$DMG_TEMP"
+cp -R "$APP_BUNDLE" "$DMG_TEMP/"
+ln -s /Applications "$DMG_TEMP/Applications"
+hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_TEMP" -ov -format UDZO "$DMG_PATH"
+rm -rf "$DMG_TEMP"
+
+echo "Build complete: $DMG_PATH"

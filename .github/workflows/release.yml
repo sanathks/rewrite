@@ -15,11 +15,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build universal binary
+      - name: Build universal binary and DMG
         run: bash Scripts/build.sh arm64 x86_64
-
-      - name: Zip app
-        run: cd build && zip -r Rewrite.zip Rewrite.app
 
       - name: Extract version
         id: version
@@ -28,29 +25,4 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" build/Rewrite.zip --title "Rewrite ${{ steps.version.outputs.version }}" --generate-notes
-
-      - name: Compute SHA256
-        id: sha
-        run: echo "sha256=$(shasum -a 256 build/Rewrite.zip | awk '{print $1}')" >> "$GITHUB_OUTPUT"
-
-      - name: Update Homebrew tap
-        env:
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          SHA256="${{ steps.sha.outputs.sha256 }}"
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/Rewrite.zip"
-
-          git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/sanathks/homebrew-rewrite.git tap
-          cd tap
-
-          sed -i '' "s|version \".*\"|version \"${VERSION}\"|" Formula/rewrite.rb
-          sed -i '' "s|url \".*\"|url \"${DOWNLOAD_URL}\"|" Formula/rewrite.rb
-          sed -i '' "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/rewrite.rb
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/rewrite.rb
-          git commit -m "Update Rewrite to ${VERSION}"
-          git push
+        run: gh release create "$GITHUB_REF_NAME" build/Rewrite.dmg --title "Rewrite ${{ steps.version.outputs.version }}" --generate-notes

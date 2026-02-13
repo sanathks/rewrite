@@ -280,18 +280,7 @@ final class AccessibilityService {
             kAXSelectedTextAttribute as CFString,
             text as CFTypeRef
         )
-        guard result == .success else { return false }
-
-        // Verify the write actually took effect.
-        var readBack: AnyObject?
-        guard AXUIElementCopyAttributeValue(
-            focused,
-            kAXSelectedTextAttribute as CFString,
-            &readBack
-        ) == .success, let written = readBack as? String, written == text else {
-            return false
-        }
-        return true
+        return result == .success
     }
 
     // MARK: - Clipboard fallbacks

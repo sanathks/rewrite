@@ -10,20 +10,15 @@ All processing happens locally. No data leaves your machine.
 
 ## Install
 
-### Homebrew
+### Download
 
-```bash
-brew tap sanathks/rewrite
-brew install rewrite
-```
+Download the latest universal binary from [Releases](https://github.com/sanathks/rewrite/releases/latest):
 
-To build from source instead of downloading the prebuilt binary:
+1. Download **Rewrite.dmg**
+2. Open the DMG and drag **Rewrite.app** to your Applications folder
+3. Launch Rewrite and grant Accessibility permissions when prompted
 
-```bash
-brew install --HEAD rewrite
-```
-
-### Manual
+### Build from Source
 
 Requires macOS 13+ and Swift toolchain (Xcode or Command Line Tools).
 
@@ -60,10 +55,10 @@ The rewrite popup runs your default mode immediately and shows mode pills to swi
 
 ![Rewrite Popup](screenshots/suggestions.png)
 
+- **Fix Grammar** -- fixes grammar, spelling, and punctuation errors
 - **Clarity** -- simplifies text for maximum readability
 - **My Tone** -- rewrites to match your personal tone description
 - **Humanize** -- makes AI-generated text sound natural
-- **Professional** -- polished business communication tone
 
 Click **Replace** to swap the original text in-place, or **Copy** to copy the result to clipboard.
 
@@ -79,7 +74,7 @@ Click the menu bar icon to access settings:
 - **Model** -- auto-detected from your LLM server
 - **Rewrite Modes** -- click Configure to edit mode names and prompts
 - **Shortcuts** -- click to rebind the grammar and rewrite hotkeys
-- **Default Mode** -- choose which mode the grammar shortcut uses (Grammar Fix or any rewrite mode)
+- **Default Mode** -- choose which mode the Quick Fix shortcut uses
 - **Launch at Login** -- start Rewrite automatically when you log in
 
 Settings persist across app restarts.
@@ -90,7 +85,7 @@ Rewrite uses the macOS Accessibility API to read selected text from any app. Whe
 
 1. Reads the selected text via accessibility
 2. Sends it to your local LLM server with a tailored prompt
-3. For grammar fix: silently replaces the text in-place
+3. For Quick Fix: silently replaces the text in-place using the default mode
 4. For rewrite: shows a popup near your selection with mode options and the result
 5. On "Replace", writes the corrected text back into the source app via accessibility
 
