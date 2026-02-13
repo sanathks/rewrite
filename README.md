@@ -12,10 +12,14 @@ All processing happens locally. No data leaves your machine.
 
 ### Download
 
+<!-- VERSION-START -->
+**Latest Release: 1.2.1**
+
 | Platform | Download |
 |----------|----------|
-| macOS (Apple Silicon) | [Rewrite-apple-silicon.dmg](https://github.com/sanathks/rewrite/releases/latest/download/Rewrite-apple-silicon.dmg) |
-| macOS (Intel) | [Rewrite-intel.dmg](https://github.com/sanathks/rewrite/releases/latest/download/Rewrite-intel.dmg) |
+| macOS (Apple Silicon) | [Rewrite-apple-silicon.dmg](https://github.com/sanathks/rewrite/releases/download/v1.2.1/Rewrite-apple-silicon.dmg) |
+| macOS (Intel) | [Rewrite-intel.dmg](https://github.com/sanathks/rewrite/releases/download/v1.2.1/Rewrite-intel.dmg) |
+<!-- VERSION-END -->
 
 1. Download the DMG for your Mac
 2. Open the DMG and drag **Rewrite.app** to your Applications folder
